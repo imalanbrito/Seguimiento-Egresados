@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Seguimiento de Egresados</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+    <header id="main-header">
+        <div class="user-info">
+            <span class="user-name" id="user-name">Usuario</span>
+            <div class="user-img"></div>
+            <div class="date-time">
+                <span id="current-date"></span>
+                <span id="current-time"></span>
+            </div>
+            <div class="icon-box"></div>
+            <div class="icon-box" id="logout-btn">
+                <div class="logout-icon"></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Egresados Ingenierías</h1>
+        <h2>Tipo de Persona: <strong id="user-type">Invitado</strong></h2>
+
+        <div class="filter-container">
+            <form id="filter-form">
+                <div class="search-row">
+                    <label for="periodo">Seleccione Periodo:</label>
+                    <select name="periodo" id="periodo">
+                        <option disabled selected>Seleccione opción</option>
+                        <!-- Opciones se llenarán con JS -->
+                    </select>
+
+                    <label for="buscar">Buscar:</label>
+                    <input type="text" name="buscar" id="buscar" placeholder="ID / Nombre del Egresado">
+                </div>
+
+                <h2>Filtrar por:</h2>
+
+                <div class="dropdown-group">
+                    <label for="programa">Programa Académico UPAEP</label>
+                    <select name="programa" id="programa">
+                        <option disabled selected>Seleccione opción</option>
+                        <!-- Opciones se llenarán con JS -->
+                    </select>
+                </div>
+
+                <div class="dropdown-group">
+                    <label for="empresa">Empresa o Negocio</label>
+                    <select name="empresa" id="empresa">
+                        <option disabled selected>Seleccione opción</option>
+                    </select>
+                </div>
+
+                <div class="dropdown-group">
+                    <label for="sector">Giro o Sector</label>
+                    <select name="sector" id="sector">
+                        <option disabled selected>Seleccione opción</option>
+                    </select>
+                </div>
+
+                <div class="dropdown-group">
+                    <label for="alcance">Alcance Geográfico de la Empresa</label>
+                    <select name="alcance" id="alcance">
+                        <option disabled selected>Seleccione opción</option>
+                        <option>Nacional</option>
+                        <option>Internacional</option>
+                    </select>
+                </div>
+
+                <div class="dropdown-group">
+                    <label for="estatus">Estatus Laboral</label>
+                    <select name="estatus" id="estatus">
+                        <option disabled selected>Seleccione opción</option>
+                        <option>Activo</option>
+                        <option>Inactivo</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="continue-button">Continuar</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="../assets/js/dashboard.js"></script>
+</body>
+</html>
