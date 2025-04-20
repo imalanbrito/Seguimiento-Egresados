@@ -13,18 +13,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('download-btn').addEventListener('click', function() {
-        // Lógica para descargar datos
-        alert('Función de descarga en desarrollo');
+        generateCSV();
     });
 });
 
 function initMap() {
-    // Inicializar el mapa de Leaflet
     var map = L.map('map').setView([19.0433, -98.1981], 5); // Puebla, México
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-    
-    // Aquí puedes agregar más marcadores o funcionalidades al mapa
+}
+
+function generateCSV() {
+    alert('Función de descarga en desarrollo');
 }

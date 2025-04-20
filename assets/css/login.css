@@ -36,19 +36,18 @@ label {
     color: #333;
 }
 
-input[type="email"],
-input[type="password"] {
+input {
     padding: 1vw;
     font-size: 1.2vw;
     border-radius: 10px;
     border: 2px solid #ccc;
     margin-bottom: 2vw;
-    font-family: 'Fira Sans', sans-serif;
 }
 
 .error-message {
     color: red;
     font-size: 1vw;
+    display: none;
     margin-bottom: 1vw;
 }
 
@@ -65,18 +64,4 @@ button {
 
 button:hover {
     background-color: #9a0010;
-}
-
-@media (max-width: 768px) {
-    h1 {
-        font-size: 5vw;
-    }
-
-    label, input, button {
-        font-size: 4vw;
-    }
-
-    .error-message {
-        font-size: 3.5vw;
-    }
 }

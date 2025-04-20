@@ -43,7 +43,15 @@ function loadUserData() {
 }
 
 // Inicialización común
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserData();
-    checkGuestUser();
+document.addEventListener("DOMContentLoaded", function () {
+    updateDateTime();
 });
+
+function updateDateTime() {
+    const now = new Date();
+    document.getElementById("current-date").textContent = now.toLocaleDateString("es-MX");
+    document.getElementById("current-time").textContent = now.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
