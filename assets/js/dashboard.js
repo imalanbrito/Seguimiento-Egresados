@@ -1,60 +1,78 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
+    // Inicializar funciones
+    updateDateTime();
     updateUserType();
+    
+    // Actualizar reloj cada segundo
+    setInterval(updateDateTime, 1000);
+    
+    // Configurar botones
+    document.getElementById('apply-btn').addEventListener('click', aplicarFiltros);
+    document.getElementById('reset-btn').addEventListener('click', limpiarFiltros);
+    
+    // Cargar datos iniciales
+    loadInitialData();
 });
 
-function updateUserType() {
-    const userEmail = sessionStorage.getItem("userEmail");
-    const userTypeElement = document.getElementById("user-type");
+function updateDateTime() {
+    const now = new Date();
+    document.getElementById('current-date').textContent = now.toLocaleDateString('es-MX');
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('es-MX', {hour12: false});
+}
 
+function updateUserType() {
+    const userTypeElement = document.getElementById("user-type");
     if (userTypeElement) {
-        userTypeElement.textContent = (userEmail === "invitado@upaep.edu.mx") ? "Invitado" : "Administrativo";
+        userTypeElement.textContent = document.body.classList.contains('invitado') ? "Invitado" : "Administrativo";
     }
 }
 
-function loadPeriodos() {
-    const selectPeriodo = document.getElementById("periodo");
-    if (!selectPeriodo) return;
-
-    selectPeriodo.innerHTML = ""; // Limpia opciones anteriores
-    const defaultOption = document.createElement("option");
-    defaultOption.textContent = "Seleccione opción";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    selectPeriodo.appendChild(defaultOption);
-
-    fetch("../backend/api/getPeriodos.php")
-        .then(response => response.json())
-        .then(periodos => {
-            periodos.forEach(periodo => {
-                const option = document.createElement("option");
-                option.value = periodo;
-                option.textContent = periodo;
-                selectPeriodo.appendChild(option);
-            });
-        })
-        .catch(error => console.error("Error al cargar periodos:", error));
+function loadInitialData() {
+    // Establecer valores por defecto
+    document.getElementById('periodo').value = 'todas';
+    document.getElementById('programa').value = 'todas';
+    document.getElementById('empresa').value = 'todas';
+    document.getElementById('sector').value = 'todas';
+    document.getElementById('alcance').value = 'todas';
+    document.getElementById('estatus').value = 'todas';
 }
 
-function loadProgramas() {
-    const selectPrograma = document.getElementById("programa");
-    if (!selectPrograma) return;
+function aplicarFiltros() {
+    const filtros = {
+        periodo: document.getElementById('periodo').value,
+        buscar: document.getElementById('buscar').value,
+        programa: document.getElementById('programa').value,
+        empresa: document.getElementById('empresa').value,
+        sector: document.getElementById('sector').value,
+        alcance: document.getElementById('alcance').value,
+        estatus: document.getElementById('estatus').value
+    };
+    
+    // Guardar filtros en localStorage (aunque no haya filtros seleccionados)
+    localStorage.setItem('egresados-filtros', JSON.stringify(filtros));
+    
+    // Establecer flag para indicar que viene del dashboard
+    localStorage.setItem('egresados-ready', 'true');
+    
+    // Redirigir a la página de exhibición
+    window.location.href = 'exhibicion.html';
+}
 
-    selectPrograma.innerHTML = ""; // Limpia opciones anteriores
-    const defaultOption = document.createElement("option");
-    defaultOption.textContent = "Seleccione opción";
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    selectPrograma.appendChild(defaultOption);
-
-    fetch("../backend/api/getProgramas.php")
-        .then(response => response.json())
-        .then(programas => {
-            programas.forEach(programa => {
-                const option = document.createElement("option");
-                option.value = programa;
-                option.textContent = programa;
-                selectPrograma.appendChild(option);
-            });
-        })
-        .catch(error => console.error("Error al cargar programas:", error));
+function limpiarFiltros() {
+    // Resetear todos los selectores
+    document.getElementById('filter-form').reset();
+    
+    // Establecer valores por defecto
+    document.getElementById('periodo').value = 'todas';
+    document.getElementById('programa').value = 'todas';
+    document.getElementById('empresa').value = 'todas';
+    document.getElementById('sector').value = 'todas';
+    document.getElementById('alcance').value = 'todas';
+    document.getElementById('estatus').value = 'todas';
+    
+    // Limpiar el campo de búsqueda
+    document.getElementById('buscar').value = '';
+    
+    // Eliminar filtros guardados
+    localStorage.removeItem('egresados-filtros');
 }

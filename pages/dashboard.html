@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seguimiento de Egresados</title>
     <link rel="stylesheet" href="../assets/css/dashboard.css">
     <script src="../assets/js/dashboard.js" defer></script>
 </head>
 <body>
-
     <?php
         session_start();
         if (!isset($_SESSION['userEmail'])) {
@@ -16,91 +16,145 @@
         }
 
         $userEmail = $_SESSION['userEmail'];
-        $userName = ($userEmail === 'invitado@upaep.edu.mx') ? "Jane Doe" : "John Doe";
+        $userName = ($userEmail === 'invitado@upaep.edu.mx') ? "Jane Doe" : "ALAN YAIR PEREZ FLORES";
         $userType = ($userEmail === 'invitado@upaep.edu.mx') ? "Invitado" : "Administrativo";
     ?>
 
-    <header style="background-color: #b90114;">
-        <div class="user-info">
-            <span id="user-name"><?= $userName ?></span>
-            <div class="user-img"></div>
-            <div class="date-time">
-                <span id="current-time"></span>
-                <span id="current-date"></span>
+    <header>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="date-time">
+                    <span id="current-date"></span>
+                    <span id="current-time"></span>
+                </div>
+                <div class="user-profile">
+                    <span class="user-name"><?= $userName ?></span>
+                    <div class="user-img"></div>
+                </div>
             </div>
-        </div>
-
-        <div class="icon-container">
-            <div class="icon-box"></div>
-            <div class="logout-box" onclick="window.location.href='../backend/api/logout.php'"></div>
+            <div class="logout-box" onclick="window.location.href='../backend/api/logout.php'">
+                <img src="../assets/images/logout-icon-white.svg" alt="Cerrar sesión">
+            </div>
         </div>
     </header>
 
     <main>
-        <h1>Egresados Ingenierías</h1>
-        <h2>Tipo de Persona: <strong id="user-type"><?= $userType ?></strong></h2>
+        <h1 class="page-title">Egresados Ingenierías</h1>
+        <h2 class="user-type">Tipo de Persona: <strong id="user-type"><?= $userType ?></strong></h2>
 
         <div class="filter-container">
-            <form id="filter-form" action="../backend/api/continuar.php" method="POST">
+            <form id="filter-form">
                 <div class="search-row">
                     <div class="dropdown-group">
                         <label for="periodo">Seleccione Periodo:</label>
                         <select name="periodo" id="periodo">
-                            <option disabled selected>Seleccione opción</option>
+                            <option value="todas">Todos los periodos</option>
+                            <option value="Primavera 2025">Primavera 2025</option>
+                            <option value="Otoño 2024">Otoño 2024</option>
+                            <option value="Primavera 2024">Primavera 2024</option>
+                            <option value="Otoño 2023">Otoño 2023</option>
                         </select>
                     </div>
 
                     <div class="dropdown-group">
                         <label for="buscar">Buscar:</label>
-                        <input type="text" name="buscar" id="buscar" placeholder="ID / Nombre del Egresado">
+                        <input type="search" name="buscar" id="buscar" placeholder="ID / Nombre del Egresado">
                     </div>
                 </div>
 
                 <h2>Filtrar por:</h2>
 
-                <div class="dropdown-group">
-                    <label for="programa">Programa Académico UPAEP</label>
-                    <select name="programa" id="programa">
-                        <option disabled selected>Seleccione opción</option>
-                    </select>
+                <div class="filter-grid">
+                    <div class="dropdown-group">
+                        <label for="programa">Programa Académico UPAEP</label>
+                        <select name="programa" id="programa">
+                            <option value="todas">Todas las carreras</option>
+                            <option value="Ingeniería Aeroespacial">Ingeniería Aeroespacial</option>
+                            <option value="Ingeniería Agrónoma">Ingeniería Agrónoma</option>
+                            <option value="Ingeniería Ambiental y Desarrollo Sustentable">Ingeniería Ambiental y Desarrollo Sustentable</option>
+                            <option value="Ingeniería Biónica">Ingeniería Biónica</option>
+                            <option value="Ingeniería Biotecnología">Ingeniería Biotecnología</option>
+                            <option value="Ingeniería Civil">Ingeniería Civil</option>
+                            <option value="Ingeniería en Ciencia de Datos">Ingeniería en Ciencia de Datos</option>
+                            <option value="Ingeniería en Computación y Sistemas">Ingeniería en Computación y Sistemas</option>
+                            <option value="Ingeniería en Diseño Automotriz">Ingeniería en Diseño Automotriz</option>
+                            <option value="Ingeniería en Proyectos Industriales">Ingeniería en Proyectos Industriales</option>
+                            <option value="Ingeniería en Software">Ingeniería en Software</option>
+                            <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                            <option value="Ingeniería Mecatrónica">Ingeniería Mecatrónica</option>
+                            <option value="Ingeniería Química Industrial">Ingeniería Química Industrial</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="empresa">Empresa o Negocio</label>
+                        <select name="empresa" id="empresa">
+                            <option value="todas">Todas las empresas</option>
+                            <option value="Constructora XYZ">Constructora XYZ</option>
+                            <option value="Tech Solutions">Tech Solutions</option>
+                            <option value="Data Analytica">Data Analytica</option>
+                            <option value="EcoPlanet">EcoPlanet</option>
+                            <option value="AgroSolutions">AgroSolutions</option>
+                            <option value="BioGen Tech">BioGen Tech</option>
+                            <option value="Orbital Aerospace">Orbital Aerospace</option>
+                            <option value="BioTech Solutions">BioTech Solutions</option>
+                            <option value="Industrial Dynamics">Industrial Dynamics</option>
+                            <option value="Automotive Creators">Automotive Creators</option>
+                            <option value="SmartTech">SmartTech</option>
+                            <option value="MecaTech">MecaTech</option>
+                            <option value="EcoIndustries">EcoIndustries</option>
+                            <option value="Proyectos México">Proyectos México</option>
+                            <option value="EnviroTech">EnviroTech</option>
+                            <option value="AgroDevelopers">AgroDevelopers</option>
+                            <option value="Quantum Science">Quantum Science</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="sector">Giro o Sector</label>
+                        <select name="sector" id="sector">
+                            <option value="todos">Todos los sectores</option>
+                            <option value="Construcción">Construcción</option>
+                            <option value="Tecnología">Tecnología</option>
+                            <option value="Ciencia de Datos">Ciencia de Datos</option>
+                            <option value="Ambiental">Ambiental</option>
+                            <option value="Agrícola">Agrícola</option>
+                            <option value="Biotecnología">Biotecnología</option>
+                            <option value="Aeroespacial">Aeroespacial</option>
+                            <option value="Biónica">Biónica</option>
+                            <option value="Industrial">Industrial</option>
+                            <option value="Automotriz">Automotriz</option>
+                            <option value="Mecatrónica">Mecatrónica</option>
+                            <option value="Químico Industrial">Químico Industrial</option>
+                            <option value="Proyectos Industriales">Proyectos Industriales</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="alcance">Alcance Geográfico de la Empresa</label>
+                        <select name="alcance" id="alcance">
+                            <option value="todas">Todos los alcances</option>
+                            <option value="Nacional">Nacional</option>
+                            <option value="Internacional">Internacional</option>
+                        </select>
+                    </div>
+
+                    <div class="dropdown-group">
+                        <label for="estatus">Estatus Laboral</label>
+                        <select name="estatus" id="estatus">
+                            <option value="todas">Todos los estatus</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="dropdown-group">
-                    <label for="empresa">Empresa o Negocio</label>
-                    <select name="empresa" id="empresa">
-                        <option disabled selected>Seleccione opción</option>
-                    </select>
+                <div class="form-actions">
+                    <button type="reset" class="reset-button" id="reset-btn">Limpiar</button>
+                    <button type="button" class="continue-button" id="apply-btn">Continuar</button>
                 </div>
-
-                <div class="dropdown-group">
-                    <label for="sector">Giro o Sector</label>
-                    <select name="sector" id="sector">
-                        <option disabled selected>Seleccione opción</option>
-                    </select>
-                </div>
-
-                <div class="dropdown-group">
-                    <label for="alcance">Alcance Geográfico de la Empresa</label>
-                    <select name="alcance" id="alcance">
-                        <option disabled selected>Seleccione opción</option>
-                        <option>Nacional</option>
-                        <option>Internacional</option>
-                    </select>
-                </div>
-
-                <div class="dropdown-group">
-                    <label for="estatus">Estatus Laboral</label>
-                    <select name="estatus" id="estatus">
-                        <option disabled selected>Seleccione opción</option>
-                        <option>Activo</option>
-                        <option>Inactivo</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="continue-button">Continuar</button>
             </form>
         </div>
     </main>
-
 </body>
 </html>

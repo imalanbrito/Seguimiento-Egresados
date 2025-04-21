@@ -2,49 +2,163 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seguimiento de Egresados</title>
     <link rel="stylesheet" href="../assets/css/exhibicion.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="../assets/js/exhibicion.js" defer></script>
+    <style>
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #b90114;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #content {
+            display: none;
+        }
+        
+        .filter-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #b90114;
+        }
+        
+        .filter-summary h3 {
+            margin-top: 0;
+            color: #b90114;
+        }
+        
+        .filter-summary p {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Cargando datos de egresados...</p>
+    </div>
 
-    <?php session_start(); ?>
+    <div id="content">
+        <?php
+            session_start();
+            if (!isset($_SESSION['userEmail'])) {
+                header("Location: login.html");
+                exit();
+            }
 
-    <header style="background-color: <?= ($_SESSION['userEmail'] === 'invitado@upaep.edu.mx') ? '#757575' : '#b90114' ?>;">
-        <div class="user-info">
-            <span class="user-name"><?= $_SESSION['userName'] ?></span>
-            <div class="icon-box" onclick="window.location.href='../backend/api/logout.php'">
-                <div class="logout-icon"></div>
+            $userEmail = $_SESSION['userEmail'];
+            $userName = ($userEmail === 'invitado@upaep.edu.mx') ? "Jane Doe" : $_SESSION['userName'];
+            $userType = ($userEmail === 'invitado@upaep.edu.mx') ? "Invitado" : "Administrativo";
+        ?>
+
+        <header>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="date-time">
+                        <span id="current-date"></span>
+                        <span id="current-time"></span>
+                    </div>
+                    <div class="user-profile">
+                        <span class="user-name"><?= $userName ?></span>
+                        <div class="user-img"></div>
+                    </div>
+                </div>
+                <div class="logout-box" onclick="window.location.href='../backend/api/logout.php'">
+                    <img src="../assets/images/logout-icon-white.svg" alt="Cerrar sesión">
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main>
-        <h1>Egresados Ingenierías</h1>
-        <h2>Tipo de Persona: <strong id="user-type"><?= ($_SESSION['userEmail'] === 'invitado@upaep.edu.mx') ? 'Invitado' : 'Administrativo' ?></strong></h2>
+        <main>
+            <h2 class="user-type">Tipo de Persona: <strong id="user-type"><?= $userType ?></strong></h2>
+            
+            <div id="filter-summary-container" class="filter-summary"></div>
 
-        <div class="data-container">
-            <div id="map"></div>
-        </div>
-
-        <div class="statistics-container">
-            <div class="stat-box">
-                <span class="stat-number">451</span>
-                <span class="stat-text">Egresados Totales</span>
+            <div class="data-container">
+                <div id="map"></div>
             </div>
-            <div class="stat-box">
-                <span class="stat-number">42</span>
-                <span class="stat-text">Egresados del Periodo Anterior</span>
+
+            <div class="statistics-container">
+                <div class="stat-box">
+                    <span class="stat-number">0</span>
+                    <span class="stat-text">Egresados Totales</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">0</span>
+                    <span class="stat-text">Egresados Filtrados</span>
+                </div>
             </div>
-        </div>
 
-        <div class="button-container">
-            <button id="back-btn" class="button left">Regresar</button>
-            <button id="download-btn" class="button">Descargar</button>
-        </div>
-    </main>
+            <div class="table-container">
+                <div class="table-actions">
+                    <input type="text" id="search-input" placeholder="Buscar egresados...">
+                    <button id="export-excel" class="continue-button">Exportar a Excel</button>
+                </div>
+                <div class="table-scroll">
+                    <table id="egresados-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="15%">CURP</th>
+                                <th width="20%">Nombre</th>
+                                <th width="10%">Generación</th>
+                                <th width="10%">Ubicación</th>
+                                <th width="8%">Empleado</th>
+                                <th width="15%">Empresa</th>
+                                <th width="12%">Correo Empresa</th>
+                                <th width="10%">Sector</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prev-page" disabled>Anterior</button>
+                    <span id="page-info">Página 1 de 0</span>
+                    <button id="next-page" disabled>Siguiente</button>
+                    <select id="rows-per-page">
+                        <option value="50">50 por página</option>
+                        <option value="100" selected>100 por página</option>
+                        <option value="200">200 por página</option>
+                    </select>
+                </div>
+            </div>
 
+
+            <div class="form-actions">
+                <button id="back-btn" class="reset-button">Regresar</button>
+                <button id="download-btn" class="continue-button">Descargar CSV</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../assets/js/exhibicion.js"></script>
 </body>
 </html>

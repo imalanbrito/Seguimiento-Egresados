@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 sessionStorage.setItem('userEmail', email);
                 sessionStorage.setItem('userName', data.userName);
-                window.location.href = '../pages/dashboard.html';
+                sessionStorage.setItem('userType', data.userType);
+                window.location.href = data.redirect;
             } else {
                 errorMessage.textContent = 'Credenciales incorrectas';
                 errorMessage.style.display = 'block';

@@ -1,122 +1,470 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700;900&display=swap');
+
+:root {
+    --primary-color: #b90114;
+    --primary-dark: #9a000f;
+    --secondary-color: #ffffff;
+    --text-color: #333333;
+    --text-light: #757575;
+    --border-color: #e0e0e0;
+    --border-dark: #757575;
+    --shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    --radius: 10px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Fira Sans', sans-serif;
+    background-color: #f5f5f5;
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* HEADER */
 header {
     width: 100%;
     height: 80px;
+    background-color: var(--primary-color);
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    justify-content: flex-end;
+    padding: 0 30px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    width: 100%;
-    justify-content: space-between;
+    gap: 20px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-name {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .user-img {
-    width: 50px;
-    height: 50px;
+    width: 42px;
+    height: 42px;
+    background-color: #ddd;
     background-size: cover;
     border-radius: 50%;
+    border: 2px solid var(--secondary-color);
+    box-shadow: var(--shadow);
 }
 
 .date-time {
-    font-size: 16px;
-    font-weight: bold;
-    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    text-align: right;
 }
 
-.icon-box {
+.logout-box {
     width: 40px;
     height: 40px;
+    background-color: var(--secondary-color);
+    border-radius: var(--radius);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
 }
 
+.logout-box:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
+}
+
+.logout-box img {
+    width: 22px;
+    height: 22px;
+}
+
+/* MAIN CONTENT */
 main {
+    padding: 30px;
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 0 auto;
 }
 
-h1, h2 {
-    font-weight: 700;
+.user-type {
+    margin-top: 5px;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    font-weight: 400;
 }
 
 .data-container {
-    background-color: #ffffff;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
+    background-color: var(--secondary-color);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
     padding: 20px;
     width: 100%;
     height: 500px;
-    margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin-top: 20px;
 }
 
 #map {
     width: 100%;
     height: 100%;
-    border-radius: 10px;
+    border-radius: var(--radius);
 }
 
 .statistics-container {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
-    gap: 10px;
+    gap: 20px;
     width: 100%;
 }
 
 .stat-box {
-    background-color: #ffffff;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
+    background-color: var(--secondary-color);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
     padding: 20px;
-    flex: 1.5;
+    flex: 1;
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    height: auto;
 }
 
 .stat-number {
-    font-size: 64px;
+    font-size: 3rem;
     font-weight: 900;
-    color: #b90114;
+    color: var(--primary-color);
+    line-height: 1;
 }
 
 .stat-text {
-    font-size: 20px;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #333;
+    color: var(--text-color);
+    margin-top: 10px;
 }
 
-.button-container {
-    display: flex;
-    justify-content: flex-end;
-    gap: 20px;
+/* Tabla de egresados */
+.table-container {
+    background-color: var(--secondary-color);
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    padding: 20px;
     width: 100%;
     margin-top: 20px;
 }
 
-.button {
-    background-color: #b90114;
-    color: #ffffff;
-    font-size: 16px;
-    padding: 10px 20px;
+.table-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    gap: 15px;
+}
+
+#search-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-family: 'Fira Sans', sans-serif;
+    font-size: 1rem;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    max-height: 500px;
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+}
+
+#egresados-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#egresados-table th, 
+#egresados-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#egresados-table th {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+}
+
+#egresados-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.continue-button {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px 25px;
     border: none;
     border-radius: 50px;
     cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
 }
 
-.button.left {
+.continue-button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.reset-button {
+    background-color: #f0f0f0;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.reset-button:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .statistics-container {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        height: auto;
+        padding: 15px;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    main {
+        padding: 20px;
+    }
+    
+    .data-container {
+        height: 400px;
+    }
+    
+    .table-actions {
+        flex-direction: column;
+    }
+    
+    #search-input {
+        width: 100%;
+    }
+    
+    #export-excel {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .continue-button,
+    .reset-button {
+        width: 100%;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .stat-text {
+        font-size: 1rem;
+    }
+    
+    #egresados-table th, 
+    #egresados-table td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Mantén tu CSS existente y agrega esto al final */
+#egresados-table th {
     background-color: #b90114;
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    position: sticky;
+    top: 0;
 }
 
-.button:hover {
-    background-color: #9a0010;
+#egresados-table td {
+    padding: 10px 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#egresados-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.table-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.table-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+#search-input {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+@media (max-width: 768px) {
+    .table-actions {
+        flex-direction: column;
+    }
+    
+    #search-input {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+/* Agrega esto al final de tu archivo CSS existente */
+
+/* Paginación y Virtual Scroll */
+.table-scroll {
+    max-height: 600px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.pagination-controls button {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: var(--radius);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 700;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.pagination-controls button:disabled {
+    background-color: var(--border-color);
+    color: var(--text-light);
+    cursor: not-allowed;
+    transform: none;
+}
+
+#page-info {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+#rows-per-page {
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    font-family: 'Fira Sans', sans-serif;
+    margin-left: auto;
+}
+
+.loading-indicator {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    color: var(--text-light);
+}
+
+.loading-indicator .spinner {
+    border: 3px solid rgba(185, 1, 20, 0.2);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#result-count {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-left: 10px;
 }
