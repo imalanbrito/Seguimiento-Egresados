@@ -10,7 +10,7 @@ $validCredentials = [
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
-if (isset($validCredentials[$email]) {
+if (isset($validCredentials[$email])) {
     if ($validCredentials[$email]['password'] === $password) {
         $_SESSION['userEmail'] = $email;
         $_SESSION['userName'] = $validCredentials[$email]['name'];
