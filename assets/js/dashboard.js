@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // Inicializar funciones
+    // Inicialización
+    updateUserInfo();
+    setupLogoutButton();
+    initSelects();
     updateDateTime();
-    updateUserType();
-    
-    // Actualizar reloj cada segundo
     setInterval(updateDateTime, 1000);
     
     // Configurar botones
@@ -14,30 +14,71 @@ document.addEventListener("DOMContentLoaded", function() {
     loadInitialData();
 });
 
+// Funciones principales
 function updateDateTime() {
     const now = new Date();
     document.getElementById('current-date').textContent = now.toLocaleDateString('es-MX');
-    document.getElementById('current-time').textContent = now.toLocaleTimeString('es-MX', {hour12: false});
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'});
 }
 
-function updateUserType() {
-    const userTypeElement = document.getElementById("user-type");
-    if (userTypeElement) {
-        userTypeElement.textContent = document.body.classList.contains('invitado') ? "Invitado" : "Administrativo";
+function updateUserInfo() {
+    const userEmail = sessionStorage.getItem('userEmail');
+    const userNameElement = document.getElementById('header-user-name');
+    const userTypeElement = document.getElementById('user-type');
+    
+    if (userEmail === 'administrador@upaep.mx') {
+        userNameElement.textContent = 'Administrativo UPAEP';
+        userTypeElement.textContent = 'Administrativo';
+    } else {
+        userNameElement.textContent = 'Invitado UPAEP';
+        userTypeElement.textContent = 'Invitado';
     }
 }
 
-function loadInitialData() {
-    // Establecer valores por defecto
-    document.getElementById('periodo').value = 'todas';
-    document.getElementById('programa').value = 'todas';
-    document.getElementById('empresa').value = 'todas';
-    document.getElementById('sector').value = 'todas';
-    document.getElementById('alcance').value = 'todas';
-    document.getElementById('estatus').value = 'todas';
+function setupLogoutButton() {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        });
+    }
 }
 
+function initSelects() {
+    // Forzar visibilidad de textos en selects
+    document.querySelectorAll('.dropdown-group select').forEach(select => {
+        select.style.color = '#333';
+        if (select.id === 'sector') {
+            select.selectedIndex = 0; // Seleccionar "Todos los sectores"
+        }
+    });
+}
+
+function loadInitialData() {
+    // Valores por defecto
+    const defaults = {
+        periodo: 'todas',
+        programa: 'todas',
+        sector: 'todos',
+        empresa: 'todas',
+        alcance: 'todas',
+        estatus: 'todas',
+        buscar: '' // Añadido para limpiar también el campo de búsqueda
+    };
+    
+    Object.entries(defaults).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+    });
+}
+
+// FUNCIÓN CLAVE QUE SIEMPRE HA FUNCIONADO:
 function aplicarFiltros() {
+    // 1. Prevenir cualquier comportamiento por defecto
+    event.preventDefault();
+    
+    // 2. Recoger todos los filtros actuales
     const filtros = {
         periodo: document.getElementById('periodo').value,
         buscar: document.getElementById('buscar').value,
@@ -48,31 +89,25 @@ function aplicarFiltros() {
         estatus: document.getElementById('estatus').value
     };
     
-    // Guardar filtros en localStorage (aunque no haya filtros seleccionados)
+    // 3. Guardar en localStorage (exactamente como en tu versión funcional)
     localStorage.setItem('egresados-filtros', JSON.stringify(filtros));
+    localStorage.setItem('egresados-ready', 'true'); // Flag importante
     
-    // Establecer flag para indicar que viene del dashboard
-    localStorage.setItem('egresados-ready', 'true');
-    
-    // Redirigir a la página de exhibición
+    // 4. Redirección garantizada (método que siempre te ha funcionado)
     window.location.href = 'exhibicion.html';
+    
+    // 5. Forzar redirección si hay algún problema (backup)
+    setTimeout(() => {
+        if (window.location.pathname.indexOf('exhibicion.html') === -1) {
+            window.location.assign('exhibicion.html');
+        }
+    }, 200);
 }
 
 function limpiarFiltros() {
-    // Resetear todos los selectores
     document.getElementById('filter-form').reset();
-    
-    // Establecer valores por defecto
-    document.getElementById('periodo').value = 'todas';
-    document.getElementById('programa').value = 'todas';
-    document.getElementById('empresa').value = 'todas';
-    document.getElementById('sector').value = 'todas';
-    document.getElementById('alcance').value = 'todas';
-    document.getElementById('estatus').value = 'todas';
-    
-    // Limpiar el campo de búsqueda
-    document.getElementById('buscar').value = '';
-    
-    // Eliminar filtros guardados
+    loadInitialData();
+    initSelects();
     localStorage.removeItem('egresados-filtros');
+    localStorage.removeItem('egresados-ready');
 }

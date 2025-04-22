@@ -55,6 +55,20 @@ function updateUserType() {
     }
 }
 
+function updateUserInfo() {
+    const userEmail = sessionStorage.getItem('userEmail');
+    const userNameElement = document.getElementById('header-user-name');
+    const userTypeElement = document.getElementById('user-type');
+    
+    if (userEmail === 'administrador@upaep.mx') {
+        userNameElement.textContent = 'Administrativo UPAEP';
+        userTypeElement.textContent = 'Administrativo';
+    } else {
+        userNameElement.textContent = 'Invitado UPAEP';
+        userTypeElement.textContent = 'Invitado';
+    }
+}
+
 function initMap() {
     map = L.map('map').setView([19.0433, -98.1981], 5); // Puebla, México
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

@@ -23,17 +23,18 @@
     <header>
         <div class="header-right">
             <div class="user-info">
+                <div class="user-profile">
+                    <span class="user-name" id="header-user-name"></span>
+                    <div class="user-img"></div>
+                  
+                </div>
                 <div class="date-time">
                     <span id="current-date"></span>
                     <span id="current-time"></span>
                 </div>
-                <div class="user-profile">
-                    <span class="user-name"><?= $userName ?></span>
-                    <div class="user-img"></div>
-                </div>
             </div>
-            <div class="logout-box" onclick="window.location.href='../backend/api/logout.php'">
-                <img src="../assets/images/logout-icon-white.svg" alt="Cerrar sesión">
+            <div class="logout-box" id="logout-btn">
+                <img src="../assets/images/Logout_Icon.png" alt="Cerrar sesión">
             </div>
         </div>
     </header>
