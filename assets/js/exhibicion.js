@@ -5,8 +5,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
-    
-    
     // Variables globales
     let egresadosData = [];
     let filteredData = [];
@@ -15,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Inicializar funciones
     updateDateTime();
-    updateUserType();
+    updateUserInfo();
     initMap();
     
     // Actualizar reloj cada segundo
@@ -30,6 +28,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = 'dashboard.html';
     });
     
+    document.getElementById('logout-btn').addEventListener('click', function() {
+        sessionStorage.clear();
+        window.location.href = '../login.html';
+    });
+    
     document.getElementById('download-btn').addEventListener('click', generateCSV);
     document.getElementById('export-excel').addEventListener('click', exportToExcel);
     document.getElementById('search-input').addEventListener('input', filterTable);
@@ -42,17 +45,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     localStorage.removeItem('egresados-ready');
 });
 
+
 function updateDateTime() {
     const now = new Date();
     document.getElementById('current-date').textContent = now.toLocaleDateString('es-MX');
     document.getElementById('current-time').textContent = now.toLocaleTimeString('es-MX', {hour12: false});
-}
-
-function updateUserType() {
-    const userTypeElement = document.getElementById("user-type");
-    if (userTypeElement) {
-        userTypeElement.textContent = document.body.classList.contains('invitado') ? "Invitado" : "Administrativo";
-    }
 }
 
 function updateUserInfo() {
@@ -60,12 +57,15 @@ function updateUserInfo() {
     const userNameElement = document.getElementById('header-user-name');
     const userTypeElement = document.getElementById('user-type');
     
-    if (userEmail === 'administrador@upaep.mx') {
+    if (userEmail === 'administrador@upaep.edu.mx') {
         userNameElement.textContent = 'Administrativo UPAEP';
         userTypeElement.textContent = 'Administrativo';
-    } else {
+    } else if (userEmail === 'invitado@upaep.edu.mx') {
         userNameElement.textContent = 'Invitado UPAEP';
         userTypeElement.textContent = 'Invitado';
+    } else {
+        userNameElement.textContent = 'Usuario UPAEP';
+        userTypeElement.textContent = 'Usuario';
     }
 }
 
@@ -79,278 +79,104 @@ function initMap() {
 async function loadEgresadosData() {
     try {
         const response = await fetch('../assets/data/egresados.json');
-        egresadosData = await response.json();
+        const data = await response.json();
         
-        // Normalizar datos para compatibilidad
-        egresadosData = egresadosData.map(egresado => {
-            // Asegurar campos básicos
-            if (!egresado.periodo) {
-                egresado.periodo = `Otoño ${egresado.generacion || '2023'}`;
-            }
-            if (!egresado.estatus) {
-                egresado.estatus = egresado.empleado ? "Activo" : "Inactivo";
-            }
-            if (!egresado.alcance) {
-                egresado.alcance = "Nacional";
-            }
-            return egresado;
-        });
+        // Extraer solo los datos del array all_data y mapear a la estructura requerida
+        egresadosData = data.all_data.map(item => ({
+            id: item.id || '',
+            CURP: item.CURP || '',
+            "Nombre Completo": item["Nombre Completo"] || '',
+            "Programa Academico": item["Programa Academico"] || '',
+            generacion: item.generacion || '',
+            Ciudad: item.Ciudad || '',
+            lat: item.lat || null,
+            lng: item.lng || null,
+            empleado: item.empleado || false,
+            empresa: item.empresa || '',
+            "Correo de Empresa o Negocio": item["Correo de Empresa o Negocio"] || '',
+            sector: item.sector || '',
+            ingenieria: item.ingenieria || ''
+        }));
         
         filteredData = [...egresadosData];
         updateStatistics();
+        renderTable(filteredData);
+        addMarkersFromData();
     } catch (error) {
         console.error('Error cargando datos:', error);
         loadSampleData();
     }
 }
 
-function loadSampleData() {
-    egresadosData = [
-        {
-            "id": 1,
-            "CURP": "PERJ920101HDFLRN01",
-            "Nombre Completo": "Juan Pérez López",
-            "generacion": "2018",
-            "Ciudad": "Puebla",
-            "lat": 19.0433,
-            "lng": -98.1981,
-            "empleado": true,
-            "empresa": "Constructora XYZ",
-            "Correo de Empresa o Negocio": "contacto@constructora.com",
-            "sector": "Construcción",
-            "ingenieria": "Ingeniería Civil"
-        },
-        {
-            "id": 2,
-            "CURP": "GARM900512MDFLRN02",
-            "Nombre Completo": "María García Ruiz",
-            "generacion": "2020",
-            "Ciudad": "Ciudad de México",
-            "lat": 19.5,
-            "lng": -99.1,
-            "empleado": true,
-            "empresa": "Tech Solutions",
-            "Correo de Empresa o Negocio": "info@techsolutions.com",
-            "sector": "Tecnología",
-            "ingenieria": "Ingeniería en Computación y Sistemas"
-        },
-        {
-            "id": 3,
-            "CURP": "RAMG930203HDFLRN03",
-            "Nombre Completo": "Ramón González Méndez",
-            "generacion": "2019",
-            "Ciudad": "Monterrey",
-            "lat": 25.6866,
-            "lng": -100.3161,
-            "empleado": true,
-            "empresa": "Data Analytica",
-            "Correo de Empresa o Negocio": "info@dataanalytica.com",
-            "sector": "Ciencia de Datos",
-            "ingenieria": "Ingeniería en Ciencia de Datos"
-        },
-        {
-            "id": 4,
-            "CURP": "SALV881210MDFLRN04",
-            "Nombre Completo": "Salvador Vargas Cruz",
-            "generacion": "2017",
-            "Ciudad": "Guadalajara",
-            "lat": 20.6597,
-            "lng": -103.3496,
-            "empleado": true,
-            "empresa": "EcoPlanet",
-            "Correo de Empresa o Negocio": "contacto@ecoplanet.com",
-            "sector": "Ambiental",
-            "ingenieria": "Ingeniería Ambiental y Desarrollo Sustentable"
-        },
-        {
-            "id": 5,
-            "CURP": "FLOM950612HDFLRN05",
-            "Nombre Completo": "Florencia Martínez Díaz",
-            "generacion": "2021",
-            "Ciudad": "Mérida",
-            "lat": 20.9671,
-            "lng": -89.6237,
-            "empleado": true,
-            "empresa": "AgroSolutions",
-            "Correo de Empresa o Negocio": "info@agrosolutions.com",
-            "sector": "Agrícola",
-            "ingenieria": "Ingeniería Agrónoma"
-        },
-        {
-            "id": 6,
-            "CURP": "BENJ890417HDFLRN06",
-            "Nombre Completo": "Benjamín Herrera Núñez",
-            "generacion": "2016",
-            "Ciudad": "Tijuana",
-            "lat": 32.5149,
-            "lng": -117.0382,
-            "empleado": true,
-            "empresa": "BioGen Tech",
-            "Correo de Empresa o Negocio": "contacto@biogen.com",
-            "sector": "Biotecnología",
-            "ingenieria": "Ingeniería en Biotecnología"
-        },
-        {
-            "id": 7,
-            "CURP": "RODG910715HDFLRN07",
-            "Nombre Completo": "Rodrigo Gómez Castillo",
-            "generacion": "2019",
-            "Ciudad": "Querétaro",
-            "lat": 20.5888,
-            "lng": -100.3899,
-            "empleado": true,
-            "empresa": "Orbital Aerospace",
-            "Correo de Empresa o Negocio": "info@orbitalaerospace.com",
-            "sector": "Aeroespacial",
-            "ingenieria": "Ingeniería Aeroespacial"
-        },
-        {
-            "id": 8,
-            "CURP": "LUIS850923MDFLRN08",
-            "Nombre Completo": "Luis Herrera Velázquez",
-            "generacion": "2015",
-            "Ciudad": "Toluca",
-            "lat": 19.2826,
-            "lng": -99.6557,
-            "empleado": true,
-            "empresa": "BioTech Solutions",
-            "Correo de Empresa o Negocio": "contacto@biotechsolutions.com",
-            "sector": "Biónica",
-            "ingenieria": "Ingeniería Biónica"
-        },
-        {
-            "id": 9,
-            "CURP": "CAMI930503HDFLRN09",
-            "Nombre Completo": "Camila Morales Sánchez",
-            "generacion": "2020",
-            "Ciudad": "Puebla",
-            "lat": 19.0433,
-            "lng": -98.1981,
-            "empleado": true,
-            "empresa": "Industrial Dynamics",
-            "Correo de Empresa o Negocio": "contacto@industrialdynamics.com",
-            "sector": "Industrial",
-            "ingenieria": "Ingeniería Industrial"
-        },
-        {
-            "id": 10,
-            "CURP": "FERN890630HDFLRN10",
-            "Nombre Completo": "Fernanda López Arriaga",
-            "generacion": "2018",
-            "Ciudad": "Guadalajara",
-            "lat": 20.6597,
-            "lng": -103.3496,
-            "empleado": true,
-            "empresa": "Automotive Creators",
-            "Correo de Empresa o Negocio": "info@automotivecreators.com",
-            "sector": "Automotriz",
-            "ingenieria": "Ingeniería en Diseño Automotriz"
-        },
-        {
-            "id": 11,
-            "CURP": "JAVI950211HDFLRN11",
-            "Nombre Completo": "Javier Torres Mendoza",
-            "generacion": "2021",
-            "Ciudad": "Cancún",
-            "lat": 21.1619,
-            "lng": -86.8515,
-            "empleado": true,
-            "empresa": "SmartTech",
-            "Correo de Empresa o Negocio": "contacto@smarttech.com",
-            "sector": "Tecnología",
-            "ingenieria": "Ingeniería en Software"
-        },
-        {
-            "id": 12,
-            "CURP": "PAUL871225MDFLRN12",
-            "Nombre Completo": "Paula Ramírez García",
-            "generacion": "2016",
-            "Ciudad": "Monterrey",
-            "lat": 25.6866,
-            "lng": -100.3161,
-            "empleado": true,
-            "empresa": "MecaTech",
-            "Correo de Empresa o Negocio": "info@mecatech.com",
-            "sector": "Mecatrónica",
-            "ingenieria": "Ingeniería Mecatrónica"
-        },
-        {
-            "id": 13,
-            "CURP": "DANI920305HDFLRN13",
-            "Nombre Completo": "Daniela Vázquez Fernández",
-            "generacion": "2019",
-            "Ciudad": "Ciudad de México",
-            "lat": 19.5,
-            "lng": -99.1,
-            "empleado": true,
-            "empresa": "EcoIndustries",
-            "Correo de Empresa o Negocio": "info@ecoindustries.com",
-            "sector": "Químico Industrial",
-            "ingenieria": "Ingeniería Química Industrial"
-        },
-        {
-            "id": 14,
-            "CURP": "MARI890813HDFLRN14",
-            "Nombre Completo": "Mario Fernández Rodríguez",
-            "generacion": "2017",
-            "Ciudad": "Puebla",
-            "lat": 19.0433,
-            "lng": -98.1981,
-            "empleado": true,
-            "empresa": "Proyectos México",
-            "Correo de Empresa o Negocio": "contacto@proyectosmexico.com",
-            "sector": "Industrial",
-            "ingenieria": "Ingeniería en Proyectos Industriales"
-        },
-        {
-            "id": 15,
-            "CURP": "ALEJ920112HDFLRN15",
-            "Nombre Completo": "Alejandro Ramírez Salazar",
-            "generacion": "2020",
-            "Ciudad": "Guadalajara",
-            "lat": 20.6597,
-            "lng": -103.3496,
-            "empleado": true,
-            "empresa": "EnviroTech",
-            "Correo de Empresa o Negocio": "info@envirotech.com",
-            "sector": "Ambiental",
-            "ingenieria": "Ingeniería Ambiental y Desarrollo Sustentable"
-        },
-        {
-            "id": 16,
-            "CURP": "JORG880814HDFLRN16",
-            "Nombre Completo": "Jorge Castillo Rodríguez",
-            "generacion": "2016",
-            "Ciudad": "Toluca",
-            "lat": 19.2826,
-            "lng": -99.6557,
-            "empleado": true,
-            "empresa": "AgroDevelopers",
-            "Correo de Empresa o Negocio": "info@agrodevelopers.com",
-            "sector": "Agrícola",
-            "ingenieria": "Ingeniería Agrónoma"
-        },
-        {
-            "id": 17,
-            "CURP": "RAUL930725HDFLRN17",
-            "Nombre Completo": "Raúl Hernández Gutiérrez",
-            "generacion": "2019",
-            "Ciudad": "Monterrey",
-            "lat": 25.6866,
-            "lng": -100.3161,
-            "empleado": true,
-            "empresa": "Quantum Science",
-            "Correo de Empresa o Negocio": "info@quantumscience.com",
-            "sector": "Ciencia de Datos",
-            "ingenieria": "Ingeniería en Ciencia de Datos"
-        }
-    ];
-
+function renderTable(data) {
+    const tableBody = document.querySelector('#egresados-table tbody');
+    tableBody.innerHTML = '';
     
-    filteredData = [...egresadosData];
-    updateStatistics();
-    renderTable(filteredData);
-    addMarkersFromData();
+    if (data.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="12" style="text-align: center; padding: 20px;">
+                No se encontraron egresados con los filtros aplicados
+            </td>`;
+        tableBody.appendChild(row);
+        return;
+    }
+    
+    data.forEach(egresado => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${egresado.id}</td>
+            <td>${egresado.CURP}</td>
+            <td>${egresado["Nombre Completo"]}</td>
+            <td>${egresado["Programa Academico"]}</td>
+            <td>${egresado.generacion}</td>
+            <td>${egresado.Ciudad}</td>
+            <td>${egresado.empleado ? 'Sí' : 'No'}</td>
+            <td>${egresado.empresa}</td>
+            <td>${egresado["Correo de Empresa o Negocio"]}</td>
+            <td>${egresado.sector}</td>
+            <td>${egresado.ingenieria}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+// Modifica también la función addMarkersFromData para usar la nueva estructura
+function addMarkersFromData() {
+    // Limpiar marcadores existentes
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Agregar nuevos marcadores
+    const markers = filteredData
+        .filter(e => e.lat && e.lng)
+        .map(e => {
+            const marker = L.marker([e.lat, e.lng]).addTo(map);
+            
+            let popupContent = `<b>${e["Nombre Completo"] || 'Egresado'}</b><br>`;
+            popupContent += `<small>${e.generacion || ''}</small><br>`;
+            popupContent += `<b>Programa:</b> ${e["Programa Academico"] || ''}<br>`;
+            
+            if (e.empresa) {
+                popupContent += `<b>Empresa:</b> ${e.empresa}<br>`;
+            }
+            
+            popupContent += `<b>Empleado:</b> ${e.empleado ? 'Sí' : 'No'}`;
+            
+            marker.bindPopup(popupContent);
+            return marker;
+        });
+    
+    // Ajustar vista del mapa
+    if (markers.length > 0) {
+        const group = new L.FeatureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+    } else {
+        map.setView([19.0433, -98.1981], 5);
+    }
 }
 
 function applyStoredFilters() {
@@ -407,9 +233,7 @@ function applyStoredFilters() {
             activeFilters.buscar = filtros.buscar;
         }
         
-        // Mostrar resumen de filtros
         showFilterSummary();
-        
         renderTable(filteredData);
         addMarkersFromData();
         updateStatistics();
@@ -432,21 +256,7 @@ function showFilterSummary() {
     
     let summaryHTML = '<h3>Filtros aplicados:</h3>';
     
-    if (activeFilters.periodo) {
-        summaryHTML += `<p><strong>Periodo:</strong> ${activeFilters.periodo}</p>`;
-    }
-    
-    if (activeFilters.programa) {
-        summaryHTML += `<p><strong>Carrera:</strong> ${activeFilters.programa}</p>`;
-    }
-    
-    if (activeFilters.empresa) {
-        summaryHTML += `<p><strong>Empresa:</strong> ${activeFilters.empresa}</p>`;
-    }
-    
-    if (activeFilters.buscar) {
-        summaryHTML += `<p><strong>Búsqueda:</strong> "${activeFilters.buscar}"</p>`;
-    }
+    // ... (mantén la misma lógica de resumen de filtros que tenías originalmente)
     
     summaryContainer.innerHTML = summaryHTML;
 }

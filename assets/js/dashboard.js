@@ -73,35 +73,58 @@ function loadInitialData() {
     });
 }
 
-// FUNCIÓN CLAVE QUE SIEMPRE HA FUNCIONADO:
 function aplicarFiltros() {
-    // 1. Prevenir cualquier comportamiento por defecto
     event.preventDefault();
     
-    // 2. Recoger todos los filtros actuales
-    const filtros = {
-        periodo: document.getElementById('periodo').value,
-        buscar: document.getElementById('buscar').value,
-        programa: document.getElementById('programa').value,
-        empresa: document.getElementById('empresa').value,
-        sector: document.getElementById('sector').value,
-        alcance: document.getElementById('alcance').value,
-        estatus: document.getElementById('estatus').value
-    };
+    // Obtener valores de los filtros
+    const periodo = document.getElementById('periodo').value;
+    const buscar = document.getElementById('buscar').value.trim();
+    const programa = document.getElementById('programa').value;
+    const empresa = document.getElementById('empresa').value;
+    const sector = document.getElementById('sector').value;
+    const alcance = document.getElementById('alcance').value;
+    const estatus = document.getElementById('estatus').value;
+
+    // Crear objeto de filtros solo con valores no por defecto
+    const filtros = {};
     
-    // 3. Guardar en localStorage (exactamente como en tu versión funcional)
-    localStorage.setItem('egresados-filtros', JSON.stringify(filtros));
-    localStorage.setItem('egresados-ready', 'true'); // Flag importante
+    if (periodo && periodo !== 'todas' && periodo !== 'Todos los periodos') {
+        filtros.periodo = periodo;
+    }
     
-    // 4. Redirección garantizada (método que siempre te ha funcionado)
+    if (buscar && buscar !== '') {
+        filtros.buscar = buscar;
+    }
+    
+    if (programa && programa !== 'todas' && programa !== 'Todas las carreras') {
+        filtros.programa = programa;
+    }
+    
+    if (empresa && empresa !== 'todas' && empresa !== 'Todas las empresas') {
+        filtros.empresa = empresa;
+    }
+    
+    if (sector && sector !== 'todos' && sector !== 'Todos los sectores') {
+        filtros.sector = sector;
+    }
+    
+    if (alcance && alcance !== 'todas' && alcance !== 'Todos los alcances') {
+        filtros.alcance = alcance;
+    }
+    
+    if (estatus && estatus !== 'todas' && estatus !== 'Todos los estatus') {
+        filtros.estatus = estatus;
+    }
+
+    // Solo guardar filtros si hay alguno aplicado
+    if (Object.keys(filtros).length > 0) {
+        localStorage.setItem('egresados-filtros', JSON.stringify(filtros));
+    } else {
+        localStorage.removeItem('egresados-filtros'); // Eliminar filtros si no hay ninguno válido
+    }
+    
+    localStorage.setItem('egresados-ready', 'true');
     window.location.href = 'exhibicion.html';
-    
-    // 5. Forzar redirección si hay algún problema (backup)
-    setTimeout(() => {
-        if (window.location.pathname.indexOf('exhibicion.html') === -1) {
-            window.location.assign('exhibicion.html');
-        }
-    }, 200);
 }
 
 function limpiarFiltros() {
