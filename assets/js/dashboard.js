@@ -26,13 +26,13 @@ function updateUserInfo() {
     const userNameElement = document.getElementById('header-user-name');
     const userTypeElement = document.getElementById('user-type');
     
-    if (userEmail === 'administrador@upaep.mx') {
+    if (userEmail === 'administrador@upaep.edu.mx') {
         userNameElement.textContent = 'Administrativo UPAEP';
         userTypeElement.textContent = 'Administrativo';
     } else {
         userNameElement.textContent = 'Invitado UPAEP';
         userTypeElement.textContent = 'Invitado';
-    }
+    } 
 }
 
 function setupLogoutButton() {

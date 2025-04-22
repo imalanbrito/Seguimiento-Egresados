@@ -11,41 +11,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     let map;
     let activeFilters = {};
 
-    // Inicializar funciones
+    // Inicializar funciones básicas
     updateDateTime();
     updateUserInfo();
     initMap();
-    
-    // Actualizar reloj cada segundo
     setInterval(updateDateTime, 1000);
     
-    // Cargar datos de egresados
-    await loadEgresadosData();
-    applyStoredFilters();
+    // Configurar eventos
+    setupEventListeners();
     
-    // Configurar botones
-    document.getElementById('back-btn').addEventListener('click', function() {
-        window.location.href = 'dashboard.html';
-    });
+    // Cargar y procesar datos
+    await loadAndProcessData();
     
-    document.getElementById('logout-btn').addEventListener('click', function() {
-        sessionStorage.clear();
-        window.location.href = '../login.html';
-    });
-    
-    document.getElementById('download-btn').addEventListener('click', generateCSV);
-    document.getElementById('export-excel').addEventListener('click', exportToExcel);
-    document.getElementById('search-input').addEventListener('input', filterTable);
-    
-    // Mostrar contenido y ocultar pantalla de carga
+    // Mostrar contenido
     document.getElementById('content').style.display = 'block';
     document.getElementById('loading-screen').style.display = 'none';
-    
-    // Limpiar flag
     localStorage.removeItem('egresados-ready');
 });
 
-
+// FUNCIONES BÁSICAS
 function updateDateTime() {
     const now = new Date();
     document.getElementById('current-date').textContent = now.toLocaleDateString('es-MX');
@@ -70,140 +54,470 @@ function updateUserInfo() {
 }
 
 function initMap() {
-    map = L.map('map').setView([19.0433, -98.1981], 5); // Puebla, México
+    const centerOfMexico = [23.6345, -102.5528];
+    const defaultZoom = 5;
+    map = L.map('map').setView(centerOfMexico, defaultZoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 }
 
-async function loadEgresadosData() {
+// CONFIGURACIÓN DE EVENTOS
+function setupEventListeners() {
+    document.getElementById('back-btn').addEventListener('click', () => window.location.href = 'dashboard.html');
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = '../login.html';
+    });
+    document.getElementById('download-btn').addEventListener('click', generateCSV);
+    document.getElementById('export-excel').addEventListener('click', exportToExcel);
+    document.getElementById('search-input').addEventListener('input', filterTable);
+}
+
+// MANEJO DE DATOS
+async function loadAndProcessData() {
     try {
         const response = await fetch('../assets/data/egresados.json');
         const data = await response.json();
         
-        // Extraer solo los datos del array all_data y mapear a la estructura requerida
-        egresadosData = data.all_data.map(item => ({
-            id: item.id || '',
-            CURP: item.CURP || '',
-            "Nombre Completo": item["Nombre Completo"] || '',
-            "Programa Academico": item["Programa Academico"] || '',
-            generacion: item.generacion || '',
-            Ciudad: item.Ciudad || '',
-            lat: item.lat || null,
-            lng: item.lng || null,
-            empleado: item.empleado || false,
-            empresa: item.empresa || '',
-            "Correo de Empresa o Negocio": item["Correo de Empresa o Negocio"] || '',
-            sector: item.sector || '',
-            ingenieria: item.ingenieria || ''
-        }));
+        // Procesar datos del JSON o usar datos de ejemplo
+        egresadosData = data.all_data || generateSampleData();
         
         filteredData = [...egresadosData];
         updateStatistics();
         renderTable(filteredData);
-        addMarkersFromData();
+        updateMapWithData();
     } catch (error) {
         console.error('Error cargando datos:', error);
-        loadSampleData();
+        egresadosData = generateSampleData();
+        filteredData = [...egresadosData];
+        updateStatistics();
+        renderTable(filteredData);
+        updateMapWithData();
     }
 }
 
+function generateSampleData() {
+    return [
+        {
+            "id": 3464538,
+                 "CURP": "PERJ920101HDFLRN01",
+                 "Nombre Completo": "Juan Pérez López",
+                 "generacion": "2018",
+                 "Programa Academico": "Ingeniería Civil",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0433,
+                 "lng": -98.1981,
+                 "empleado": true,
+                 "empresa": "Constructora XYZ",
+                 "Correo de Empresa o Negocio": "contacto@constructora.com",
+                 "sector": "Construcción"
+                 
+             },
+             {
+                 "id": 3464539,
+                 "CURP": "GOMS930215MDFLRN02",
+                 "Nombre Completo": "María González Sánchez",
+                 "generacion": "2019",
+                 "Programa Academico": "Ingeniería en Software",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0415,
+                 "lng": -98.2063,
+                 "empleado": true,
+                 "empresa": "Tech Solutions",
+                 "Correo de Empresa o Negocio": "maria.gonzalez@techsolutions.com",
+                 "sector": "Tecnología"
+                 
+             },
+             {
+                 "id": 3464540,
+                 "CURP": "ROML940322HDFLRN03",
+                 "Nombre Completo": "Luis Rodríguez Martínez",
+                 "generacion": "2020",
+                 "Programa Academico": "Ingeniería en Software",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0456,
+                 "lng": -98.2019,
+                 "empleado": true,
+                 "empresa": "Data Analytics MX",
+                 "Correo de Empresa o Negocio": "lrodriguez@dataanalytics.com",
+                 "sector": "Ciencia de Datos"
+                 
+             },
+             {
+                 "id": 3464541,
+                 "CURP": "HERN950428MDFLRN04",
+                 "Nombre Completo": "Ana Hernández Navarro",
+                 "generacion": "2017",
+                 "Programa Academico": "Ingeniería Ambiental y Desarrollo Sustentable",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0421,
+                 "lng": -98.2037,
+                 "empleado": true,
+                 "empresa": "EcoPlanet",
+                 "Correo de Empresa o Negocio": "ana.hernandez@ecoplanet.com",
+                 "sector": "Ambiental",
+                 
+             },
+             {
+                 "id": 3464542,
+                 "CURP": "GARJ960530HDFLRN05",
+                 "Nombre Completo": "Jorge García Ruiz",
+                 "generacion": "2021",
+                 "Programa Academico": "Ingeniería Agrónoma",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0442,
+                 "lng": -98.2055,
+                 "empleado": true,
+                 "empresa": "AgroSolutions",
+                 "Correo de Empresa o Negocio": "jgarcia@agrosolutions.com",
+                 "sector": "Agrícola",
+                 
+             },
+             {
+                 "id": 3464543,
+                 "CURP": "LOPM970612MDFLRN06",
+                 "Nombre Completo": "Mónica López Pérez",
+                 "generacion": "2018",
+                 "Programa Academico": "Ingeniería en Biotecnología",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0438,
+                 "lng": -98.2024,
+                 "empleado": true,
+                 "empresa": "BioGen Tech",
+                 "Correo de Empresa o Negocio": "mlopez@biogentech.com",
+                 "sector": "Biotecnología",
+                 
+             },
+             {
+                 "id": 3464544,
+                 "CURP": "DIAJ980724HDFLRN07",
+                 "Nombre Completo": "José Díaz Alonso",
+                 "generacion": "2019",
+                 "Programa Academico": "Ingeniería Aeroespacial",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0419,
+                 "lng": -98.2046,
+                 "empleado": true,
+                 "empresa": "AeroMex",
+                 "Correo de Empresa o Negocio": "jdiaz@aeromex.com",
+                 "sector": "Aeroespacial"
+                 
+             },
+             {
+                 "id": 3464545,
+                 "CURP": "MART990830MDFLRN08",
+                 "Nombre Completo": "Teresa Martínez Ríos",
+                 "generacion": "2020",
+                 "Programa Academico": "Ingeniería Biónica",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0428,
+                 "lng": -98.2031,
+                 "empleado": true,
+                 "empresa": "BioTech Solutions",
+                 "Correo de Empresa o Negocio": "tmartinez@biotechsolutions.com",
+                 "sector": "Biomédica"
+                 
+             },
+             {
+                 "id": 3464546,
+                 "CURP": "SANC001012HDFLRN09",
+                 "Nombre Completo": "Carlos Sánchez Mendoza",
+                 "generacion": "2021",
+                 "Programa Academico": "Ingeniería Civil",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0435,
+                 "lng": -98.2058,
+                 "empleado": true,
+                 "empresa": "Construcciones Modernas",
+                 "Correo de Empresa o Negocio": "csanchez@construccionesmodernas.com",
+                 "sector": "Construcción"
+                 
+             },
+             {
+                 "id": 3464547,
+                 "CURP": "RODR011114MDFLRN10",
+                 "Nombre Completo": "Rosa Rodríguez Díaz",
+                 "generacion": "2017",
+                 "Programa Academico": "Ingeniería Industrial",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0423,
+                 "lng": -98.2042,
+                 "empleado": true,
+                 "empresa": "Industrial Solutions",
+                 "Correo de Empresa o Negocio": "rrodriguez@industrialsolutions.com",
+                 "sector": "Industrial"
+             },
+             {
+                 "id": 3464548,
+                 "CURP": "GOME021216HDFLRN11",
+                 "Nombre Completo": "Eduardo Gómez Vargas",
+                 "generacion": "2018",
+                 "Programa Academico": "Ingeniería en Diseño Automotriz",
+                 "Ciudad": "Ciudad de México",
+                 "lat": 19.4326,
+                 "lng": -99.1332,
+                 "empleado": true,
+                 "empresa": "AutoDesign",
+                 "Correo de Empresa o Negocio": "egomez@autodesign.com",
+                 "sector": "Automotriz"
+                 
+             },
+             {
+                 "id": 3464549,
+                 "CURP": "VARG031318MDFLRN12",
+                 "Nombre Completo": "Gabriela Vargas Castro",
+                 "generacion": "2019",
+                 "Programa Academico": "Ingeniería Mecatrónica",
+                 "Ciudad": "Monterrey",
+                 "lat": 25.6866,
+                 "lng": -100.3161,
+                 "empleado": true,
+                 "empresa": "MechTech",
+                 "Correo de Empresa o Negocio": "gvargas@mechtech.com",
+                 "sector": "Mecatrónica"
+                 
+             },
+             {
+                 "id": 3464550,
+                 "CURP": "CRUZ041420HDFLRN13",
+                 "Nombre Completo": "Javier Cruz Ortega",
+                 "generacion": "2020",
+                 "Programa Academico": "Ingeniería Química Industrial",
+                 "Ciudad": "Guadalajara",
+                 "lat": 20.6597,
+                 "lng": -103.3496,
+                 "empleado": true,
+                 "empresa": "Quimica Industrial",
+                 "Correo de Empresa o Negocio": "jcruz@quimicaindustrial.com",
+                 "sector": "Químico"
+                 
+             },
+             {
+                 "id": 3464551,
+                 "CURP": "FLOR051522MDFLRN14",
+                 "Nombre Completo": "Flor Morales Reyes",
+                 "generacion": "2021",
+                 "Programa Academico": "Ingeniería en Proyectos Industriales",
+                 "Ciudad": "Querétaro",
+                 "lat": 20.5888,
+                 "lng": -100.3899,
+                 "empleado": true,
+                 "empresa": "Proyectos Industriales SA",
+                 "Correo de Empresa o Negocio": "fmorales@proyectosindustriales.com",
+                 "sector": "Industrial"
+                 
+             },
+             {
+                 "id": 3464552,
+                 "CURP": "FERN930817MDFLTR02",
+                 "Nombre Completo": "Laura Fernández Torres",
+                 "generacion": "2015",
+                 "Programa Academico": "Ingeniería en Biotecnología",
+                 "Ciudad":"Puebla",
+                 "lat": 20.5888, "lng": -100.3899,
+                 "empleado": false,
+                 "empresa": "",
+                 "Correo de Empresa o Negocio": "",
+                 "sector": ""
+                 
+             },
+             {
+                 "id": 3464553, "CURP": "RODR850926HDFMRL07", 
+                 "Nombre Completo": "Carlos Rodríguez Molina",
+                 "generacion": "2014",
+                 "Programa Academico": "Ingeniería Biónica",
+                 "Ciudad": "Mérida",
+                 "lat": 20.9671,
+                 "lng": -89.6235,
+                 "empleado": true,
+                 "empresa": "BioTec Industries",
+                 "Correo de Empresa o Negocio": "crodriguez@biotecind.com",
+                 "sector": "Biotecnología"
+                 
+             },
+             {
+                 "id": 3464554,
+                 "CURP": "SANC911211MDFPTR03",
+                 "Nombre Completo": "Andrea Sánchez Pérez",
+                 "generacion": "2017",
+                 "Programa Academico": "Ingeniería en Computación y Sistemas",
+                 "Ciudad": "Puebla",
+                 "lat": 32.5149,
+                 "lng": -117.0382,
+                 "empleado": false,
+                 "empresa": "",
+                 "Correo de Empresa o Negocio": "",
+                 "sector": ""
+                 
+             },
+             {
+                 "id": 3464555,
+                 "CURP": "HERN820319HDFVRS01",
+                 "Nombre Completo": "Fernando Hernández Vargas",
+                 "generacion": "2013",
+                 "Programa Academico": "Ingeniería Ambiental y Desarrollo Sustentable",
+                 "Ciudad": "Puebla",
+                 "lat": 21.1619,
+                 "lng": -86.8515,
+                 "empleado": true,
+                 "empresa": "GreenTech Solutions",
+                 "Correo de Empresa o Negocio":
+                 "fhernandez@greentech.com",
+                 "sector": "Medio Ambiente"
+                 
+             },
+             {
+                 "id": 3464556,
+                 "CURP": "VELA900505HDFLTR04",
+                 "Nombre Completo": "Daniel Velázquez Torres",
+                 "generacion": "2016",
+                 "Programa Academico": "Ingeniería Agrónoma",
+                 "Ciudad": "Ciudad de México",
+                 "lat": 19.4326,
+                 "lng": -99.1332,
+                 "empleado": false,
+                 "empresa": "",
+                 "Correo de Empresa o Negocio": "",
+                 "sector": ""
+                 
+             },
+             {
+                 "id": 3464557,
+                 "CURP": "CRUZ951228MDFGNL06",
+                 "Nombre Completo": "Gabriela Cruz González",
+                 "generacion": "2018",
+                 "Programa Academico": "Ingeniería en Diseño Automotriz",
+                 "Ciudad": "Puebla",
+                 "lat": 21.1220,
+                 "lng": -101.6822,
+                 "empleado": true,
+                 "empresa": "AutoDesign",
+                 "Correo de Empresa o Negocio": "gcruz@autodesign.com",
+                 "sector": "Automotriz"
+                 
+             },
+             {
+                 "id": 3464558,
+                 "CURP": "AGUI780407HDFMRZ09",
+                 "Nombre Completo": "Luis Aguilar Martínez",
+                 "generacion": "2012",
+                 "Programa Academico": "Ingeniería Industrial",
+                 "Ciudad": "Toluca",
+                 "lat": 19.2826,
+                 "lng": -99.6557,
+                 "empleado": true,
+                 "empresa": "Industrias Toluca",
+                 "Correo de Empresa o Negocio":
+                 "laguilar@indtoluca.com", "sector":
+                 "Industrial"
+                 
+             },
+             {
+                 "id": 3464587,
+                 "CURP": "LOPA491230MDFLRN50",
+                 "Nombre Completo": "Ana López Pérez",
+                 "generacion": "2020",
+                 "Programa Academico": "Ingeniería en Computación y Sistemas",
+                 "Ciudad": "Puebla",
+                 "lat": 19.0412,
+                 "lng": -98.2067,
+                 "empleado": true,
+                 "empresa": "Data Systems",
+                 "Correo de Empresa o Negocio": "alopez@datasystems.com",
+                 "sector": "Tecnología"
+                 
+         }
+    ];
+}
+
+// RENDERIZADO DE DATOS
 function renderTable(data) {
     const tableBody = document.querySelector('#egresados-table tbody');
     tableBody.innerHTML = '';
     
     if (data.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="12" style="text-align: center; padding: 20px;">
-                No se encontraron egresados con los filtros aplicados
-            </td>`;
-        tableBody.appendChild(row);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 20px;">
+                    No se encontraron egresados con los filtros aplicados
+                </td>
+            </tr>`;
         return;
     }
     
-    data.forEach(egresado => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${egresado.id}</td>
-            <td>${egresado.CURP}</td>
-            <td>${egresado["Nombre Completo"]}</td>
-            <td>${egresado["Programa Academico"]}</td>
-            <td>${egresado.generacion}</td>
-            <td>${egresado.Ciudad}</td>
-            <td>${egresado.empleado ? 'Sí' : 'No'}</td>
-            <td>${egresado.empresa}</td>
-            <td>${egresado["Correo de Empresa o Negocio"]}</td>
-            <td>${egresado.sector}</td>
-            <td>${egresado.ingenieria}</td>
-        `;
-        tableBody.appendChild(row);
-    });
+    const rows = data.map(egresado => `
+        <tr>
+            <td>${egresado.id || '-'}</td>
+            <td>${egresado.CURP || '-'}</td>
+            <td>${egresado["Nombre Completo"] || '-'}</td>
+            <td>${egresado["Programa Academico"] || '-'}</td>
+            <td>${egresado.periodo || egresado.generacion || '-'}</td>
+            <td>${egresado.empresa || '-'}</td>
+            <td>${egresado.sector || '-'}</td>
+            <td>${egresado.Ciudad || egresado.ubicacion || '-'}</td>
+            <td>${egresado.empleado ? 'Empleado' : 'No empleado'}</td>
+        </tr>`
+    ).join('');
+    
+    tableBody.innerHTML = rows;
 }
 
-// Modifica también la función addMarkersFromData para usar la nueva estructura
-function addMarkersFromData() {
+function updateMapWithData() {
     // Limpiar marcadores existentes
     map.eachLayer(layer => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
+        if (layer instanceof L.Marker) map.removeLayer(layer);
     });
-    
+
     // Agregar nuevos marcadores
     const markers = filteredData
         .filter(e => e.lat && e.lng)
         .map(e => {
-            const marker = L.marker([e.lat, e.lng]).addTo(map);
+            const popupContent = `
+                <b>${e["Nombre Completo"] || 'Egresado'}</b><br>
+                <small>${e.generacion || ''}</small><br>
+                ${e.empresa ? `<b>Empresa:</b> ${e.empresa}<br>` : ''}
+                <b>Empleado:</b> ${e.empleado ? 'Sí' : 'No'}
+            `;
             
-            let popupContent = `<b>${e["Nombre Completo"] || 'Egresado'}</b><br>`;
-            popupContent += `<small>${e.generacion || ''}</small><br>`;
-            popupContent += `<b>Programa:</b> ${e["Programa Academico"] || ''}<br>`;
-            
-            if (e.empresa) {
-                popupContent += `<b>Empresa:</b> ${e.empresa}<br>`;
-            }
-            
-            popupContent += `<b>Empleado:</b> ${e.empleado ? 'Sí' : 'No'}`;
-            
-            marker.bindPopup(popupContent);
-            return marker;
+            return L.marker([e.lat, e.lng])
+                .addTo(map)
+                .bindPopup(popupContent);
         });
-    
-    // Ajustar vista del mapa
+
+    // Ajustar vista
     if (markers.length > 0) {
-        const group = new L.FeatureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.2));
+        map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
     } else {
-        map.setView([19.0433, -98.1981], 5);
+        map.setView([23.6345, -102.5528], 5);
     }
 }
 
+// FILTRADO DE DATOS
 function applyStoredFilters() {
     const filtrosGuardados = localStorage.getItem('egresados-filtros');
     const summaryContainer = document.getElementById('filter-summary-container');
     
+    summaryContainer.innerHTML = '';
+    filteredData = [...egresadosData];
+    
     if (!filtrosGuardados) {
-        filteredData = [...egresadosData];
-        summaryContainer.innerHTML = '<h3>Mostrando todos los egresados</h3>';
-        renderTable(filteredData);
-        addMarkersFromData();
+        updateUI();
         return;
     }
     
     try {
         const filtros = JSON.parse(filtrosGuardados);
-        filteredData = [...egresadosData];
         activeFilters = {};
         
-        // Aplicar filtros
-        if (filtros.periodo && filtros.periodo !== 'todas') {
+        // Aplicar filtros solo si no son valores por defecto
+        if (filtros.periodo && !['todas', 'Todos los periodos'].includes(filtros.periodo)) {
             filteredData = filteredData.filter(e => e.periodo === filtros.periodo);
             activeFilters.periodo = filtros.periodo;
         }
         
-        if (filtros.programa && filtros.programa !== 'todas') {
-            filteredData = filteredData.filter(e => (e.carrera || e['Programas Académicos UPAEP']) === filtros.programa);
+        if (filtros.programa && !['todas', 'Todas las carreras'].includes(filtros.programa)) {
+            filteredData = filteredData.filter(e => e["Programa Academico"] === filtros.programa);
             activeFilters.programa = filtros.programa;
         }
         
@@ -234,16 +548,36 @@ function applyStoredFilters() {
         }
         
         showFilterSummary();
-        renderTable(filteredData);
-        addMarkersFromData();
-        updateStatistics();
+        updateUI();
     } catch (error) {
         console.error('Error aplicando filtros:', error);
-        filteredData = [...egresadosData];
-        summaryContainer.innerHTML = '<h3>Mostrando todos los egresados</h3>';
-        renderTable(filteredData);
-        addMarkersFromData();
+        updateUI();
     }
+}
+
+function filterTable() {
+    const termino = document.getElementById('search-input').value.toLowerCase().trim();
+    
+    if (!termino) {
+        applyStoredFilters();
+        return;
+    }
+    
+    const resultados = filteredData.filter(e => 
+        (e["Nombre Completo"] || '').toLowerCase().includes(termino) ||
+        (e.CURP || '').toLowerCase().includes(termino) ||
+        (e.empresa || '').toLowerCase().includes(termino) ||
+        (e.id && e.id.toString().includes(termino))
+    );
+    
+    renderTable(resultados);
+    updateMapWithMarkers(resultados);
+}
+
+function updateUI() {
+    renderTable(filteredData);
+    updateMapWithData();
+    updateStatistics();
 }
 
 function showFilterSummary() {
@@ -255,158 +589,51 @@ function showFilterSummary() {
     }
     
     let summaryHTML = '<h3>Filtros aplicados:</h3>';
-    
-    // ... (mantén la misma lógica de resumen de filtros que tenías originalmente)
+    Object.entries(activeFilters).forEach(([key, value]) => {
+        summaryHTML += `<p><strong>${formatFilterName(key)}:</strong> ${value}</p>`;
+    });
     
     summaryContainer.innerHTML = summaryHTML;
 }
 
-function renderTable(data) {
-    const tableBody = document.querySelector('#egresados-table tbody');
-    tableBody.innerHTML = '';
-    
-    if (data.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="9" style="text-align: center; padding: 20px;">
-                No se encontraron egresados con los filtros aplicados
-            </td>`;
-        tableBody.appendChild(row);
-        return;
-    }
-    
-    data.forEach(egresado => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${egresado.id || egresado['ID Unisoft'] || '-'}</td>
-            <td>${egresado.CURP || '-'}</td>
-            <td>${egresado.nombre || egresado['Nombre Completo'] || '-'}</td>
-            <td>${egresado.generacion || '-'}</td>
-            <td>${egresado.ubicacion || egresado.Ciudad || '-'}</td>
-            <td>${egresado.empleado ? 'Sí' : 'No'}</td>
-            <td>${egresado.empresa || '-'}</td>
-            <td>${egresado['Correo de Empresa o Negocio'] || '-'}</td>
-            <td>${egresado.sector || '-'}</td>
-        `;
-        tableBody.appendChild(row);
-    });
+function formatFilterName(key) {
+    const names = {
+        'periodo': 'Periodo',
+        'programa': 'Programa Academico',
+        'empresa': 'Empresa',
+        'sector': 'Sector',
+        'estatus': 'Estatus Laboral',
+        'buscar': 'Búsqueda'
+    };
+    return names[key] || key;
 }
 
-function addMarkersFromData() {
-    // Limpiar marcadores existentes
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
-    });
-    
-    // Agregar nuevos marcadores
-    const markers = filteredData
-        .filter(e => e.lat && e.lng)
-        .map(e => {
-            const marker = L.marker([e.lat, e.lng]).addTo(map);
-            
-            let popupContent = `<b>${e.nombre || e['Nombre Completo'] || 'Egresado'}</b><br>`;
-            popupContent += `<small>${e.generacion || ''}</small><br>`;
-            
-            if (e.empresa) {
-                popupContent += `<b>Empresa:</b> ${e.empresa}<br>`;
-            }
-            
-            popupContent += `<b>Empleado:</b> ${e.empleado ? 'Sí' : 'No'}`;
-            
-            marker.bindPopup(popupContent);
-            return marker;
-        });
-    
-    // Ajustar vista del mapa
-    if (markers.length > 0) {
-        const group = new L.FeatureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.2));
-    } else {
-        map.setView([19.0433, -98.1981], 5);
-    }
-}
-
-function filterTable() {
-    const termino = document.getElementById('search-input').value.toLowerCase();
-    
-    if (termino === '') {
-        // Si no hay término de búsqueda, volver a los datos filtrados originales
-        applyStoredFilters();
-        return;
-    }
-    
-    const resultados = filteredData.filter(e => 
-        (e.nombre || e['Nombre Completo'] || '').toLowerCase().includes(termino) ||
-        (e.CURP || '').toLowerCase().includes(termino) ||
-        (e.empresa || '').toLowerCase().includes(termino) ||
-        (e.id && e.id.toString().includes(termino))
-    );
-    
-    renderTable(resultados);
-    
-    // Actualizar marcadores del mapa con los resultados de búsqueda
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker) {
-            map.removeLayer(layer);
-        }
-    });
-    
-    resultados.filter(e => e.lat && e.lng).forEach(e => {
-        L.marker([e.lat, e.lng]).addTo(map)
-            .bindPopup(`<b>${e.nombre || e['Nombre Completo'] || 'Egresado'}</b><br>${e.empresa || ''}`);
-    });
-}
-
-function updateStatistics() {
-    const totalElement = document.querySelectorAll('.stat-number')[0];
-    const filteredElement = document.querySelectorAll('.stat-number')[1];
-    
-    if (totalElement) totalElement.textContent = egresadosData.length;
-    if (filteredElement) filteredElement.textContent = filteredData.length;
-}
-
+// EXPORTACIÓN DE DATOS
 function generateCSV() {
     if (filteredData.length === 0) {
         alert('No hay datos para exportar');
         return;
     }
     
-    // Encabezados CSV
     const headers = [
-        'ID', 'CURP', 'Nombre', 'Generación', 'Ubicación', 
-        'Empleado', 'Empresa', 'Correo Empresa', 'Sector'
+        'ID', 'CURP', 'Nombre', 'Programa Académico UPAEP', 
+        'Periodo de Egreso', 'Empresa', 'Giro o Sector', 
+        'Ubicación de la Empresa', 'Estatus Laboral'
     ];
     
-    // Preparar datos
     const rows = filteredData.map(e => [
-        e.id || e['ID Unisoft'] || '',
+        e.id || '',
         `"${(e.CURP || '').replace(/"/g, '""')}"`,
-        `"${(e.nombre || e['Nombre Completo'] || '').replace(/"/g, '""')}"`,
-        e.generacion || '',
-        `"${(e.ubicacion || e.Ciudad || '').replace(/"/g, '""')}"`,
-        e.empleado ? 'Sí' : 'No',
+        `"${(e["Nombre Completo"] || '').replace(/"/g, '""')}"`,
+        `"${(e["Programa Academico"] || '').replace(/"/g, '""')}"`,
+        `"${(e.periodo || e.generacion || '').replace(/"/g, '""')}"`,
         e.empresa ? `"${e.empresa.replace(/"/g, '""')}"` : '-',
-        e['Correo de Empresa o Negocio'] ? `"${e['Correo de Empresa o Negocio'].replace(/"/g, '""')}"` : '-',
-        e.sector ? `"${e.sector.replace(/"/g, '""')}"` : '-'
+        e.sector ? `"${e.sector.replace(/"/g, '""')}"` : '-',
+        `"${(e.Ciudad || e.ubicacion || '').replace(/"/g, '""')}"`,
+        e.empleado ? 'Empleado' : 'No empleado'
     ]);
     
-    // Crear contenido CSV
-    let csvContent = headers.join(',') + '\n';
-    rows.forEach(row => {
-        csvContent += row.join(',') + '\n';
-    });
-    
-    // Crear y descargar archivo
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `egresados_${new Date().toISOString().slice(0,10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadFile(headers.join(',') + '\n' + rows.map(row => row.join(',')).join('\n'), 'egresados.csv', 'text/csv');
 }
 
 function exportToExcel() {
@@ -415,37 +642,55 @@ function exportToExcel() {
         return;
     }
     
-    // Verificar si SheetJS está cargado
     if (typeof XLSX === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
-        script.onload = exportToExcel;
-        document.head.appendChild(script);
+        loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', exportToExcel);
         return;
     }
     
     try {
-        // Preparar datos para Excel
         const excelData = filteredData.map(e => ({
-            ID: e.id || e['ID Unisoft'] || '',
-            CURP: e.CURP || '-',
-            Nombre: e.nombre || e['Nombre Completo'] || '-',
-            Generación: e.generacion || '-',
-            Ubicación: e.ubicacion || e.Ciudad || '-',
-            Empleado: e.empleado ? 'Sí' : 'No',
-            Empresa: e.empresa || '-',
-            'Correo Empresa': e['Correo de Empresa o Negocio'] || '-',
-            Sector: e.sector || '-'
+            'ID': e.id || '',
+            'CURP': e.CURP || '-',
+            'Nombre': e["Nombre Completo"] || '-',
+            'Programa Académico UPAEP': e["Programa Academico"] || '-',
+            'Periodo de Egreso': e.periodo || e.generacion || '-',
+            'Empresa': e.empresa || '-',
+            'Giro o Sector': e.sector || '-',
+            'Ubicación de la Empresa': e.Ciudad || e.ubicacion || '-',
+            'Estatus Laboral': e.empleado ? 'Empleado' : 'No empleado'
         }));
         
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Egresados");
-        
-        // Exportar archivo
         XLSX.writeFile(wb, `egresados_${new Date().toISOString().slice(0,10)}.xlsx`);
     } catch (error) {
         console.error('Error al exportar a Excel:', error);
         alert('Error al exportar a Excel');
     }
+}
+
+// FUNCIONES UTILITARIAS
+function updateStatistics() {
+    const [totalElement, filteredElement] = document.querySelectorAll('.stat-number');
+    if (totalElement) totalElement.textContent = egresadosData.length;
+    if (filteredElement) filteredElement.textContent = filteredData.length;
+}
+
+function downloadFile(content, fileName, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function loadScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    document.head.appendChild(script);
 }
