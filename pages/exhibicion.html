@@ -56,6 +56,98 @@
         .filter-summary p {
             margin-bottom: 5px;
         }
+
+        /* Estilos para el contenedor de tipo de usuario y botón */
+        .user-type-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #b90114;
+        }
+        
+        .user-type {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        #user-type {
+            color: #b90114;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        /* Estilos para el botón de regreso en el header */
+        .header-back-button {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-back-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-back-button::before {
+            content: "←";
+            margin-right: 5px;
+        }
+
+        /* Ajustes para el header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            background-color: #b90114;
+            height: 80px;
+            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .user-type-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            header {
+                padding: 0 15px;
+                height: auto;
+                flex-wrap: wrap;
+                padding: 10px;
+            }
+            
+            .header-back-button {
+                margin-bottom: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -78,12 +170,14 @@
         ?>
 
         <header>
+            <div class="header-left">
+                <button id="back-btn-header" class="header-back-button">Regresar</button>
+            </div>
             <div class="header-right">
                 <div class="user-info">
                     <div class="user-profile">
                         <span class="user-name" id="header-user-name"></span>
                         <div class="user-img"></div>
-                      
                     </div>
                     <div class="date-time">
                         <span id="current-date"></span>
@@ -97,7 +191,11 @@
         </header>
         
         <main>
-            <h2 class="user-type">Tipo de Persona: <strong id="user-type"><?= $userType ?></strong></h2>
+            <!-- Sección de tipo de usuario en la misma línea -->
+            <div class="user-type-container">
+                <h2 class="user-type">Perfil:<strong id="user-type"><?= $userType ?></strong></h2>
+                <button id="back-btn-top" class="reset-button">Volver al Dashboard</button>
+            </div>
             
             <div id="filter-summary-container" class="filter-summary"></div>
 
@@ -122,38 +220,34 @@
                     <button id="export-excel" class="continue-button">Exportar a Excel</button>
                 </div>
                 <div class="table-scroll">
-                <table id="egresados-table">
-                    <thead>
-                        <tr>
-                            <th width="5%">ID</th>
-                            <th width="10%">CURP</th>
-                            <th width="15%">Nombre</th>
-                            <th width="10%">Programa Académico UPAEP</th>
-                            <th width="15%">Periodo de Egreso</th>
-                            
-                            <th width="15%">Empresa</th>
-                            <th width="10%">Giro o Sector</th>
-                            <th width="15%">Ubicacion de la Empresa</th>
-                            
-                            <th width="10%">Estatus Laboral</th>
-                            
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
+                    <table id="egresados-table">
+                        <thead>
+                            <tr>
+                                <th width="5%">ID</th>
+                                <th width="10%">CURP</th>
+                                <th width="15%">Nombre</th>
+                                <th width="10%">Programa Académico UPAEP</th>
+                                <th width="15%">Periodo de Egreso</th>
+                                <th width="15%">Empresa</th>
+                                <th width="10%">Giro o Sector</th>
+                                <th width="15%">Ubicacion de la Empresa</th>
+                                <th width="10%">Estatus Laboral</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
                 <div class="pagination-controls">
                     <button id="prev-page" disabled>Anterior</button>
                     <span id="page-info">Página 1 de 0</span>
                     <button id="next-page" disabled>Siguiente</button>
                     <select id="rows-per-page">
-                        <option value="20"selected>20 por página</option>
+                        <option value="20" selected>20 por página</option>
                         <option value="50">50 por página</option>
                         <option value="100">100 por página</option>
                     </select>
                 </div>
             </div>
-
 
             <div class="form-actions">
                 <button id="back-btn" class="reset-button">Regresar</button>
@@ -164,5 +258,22 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../assets/js/exhibicion.js"></script>
+    
+    <script>
+        // Configurar eventos para los botones de regreso
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('back-btn-header').addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+            
+            document.getElementById('back-btn-top').addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+            
+            document.getElementById('back-btn').addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+        });
+    </script>
 </body>
 </html>

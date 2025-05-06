@@ -54,36 +54,38 @@ function updateUserInfo() {
 }
 
 function initMap() {
-    const centerOfMexico = [23.6345, -102.5528];
+    // Ajuste más preciso del centro de México
+    const centerOfMexico = [23.625, -102.537];
+    
+    // Zoom ligeramente más cercano
     const defaultZoom = 5;
+    
+    // Crear el mapa
     map = L.map('map').setView(centerOfMexico, defaultZoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+    
+    // Capa base con mejor contraste
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        attribution: ''
     }).addTo(map);
+        
+
 }
 
-// CONFIGURACIÓN DE EVENTOS
-function setupEventListeners() {
-    document.getElementById('back-btn').addEventListener('click', () => window.location.href = 'dashboard.html');
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        sessionStorage.clear();
-        window.location.href = '../login.html';
-    });
-    document.getElementById('download-btn').addEventListener('click', generateCSV);
-    document.getElementById('export-excel').addEventListener('click', exportToExcel);
-    document.getElementById('search-input').addEventListener('input', filterTable);
-}
+
 
 // MANEJO DE DATOS
+// Actualizar la función loadAndProcessData
 async function loadAndProcessData() {
     try {
         const response = await fetch('../assets/data/egresados.json');
         const data = await response.json();
         
-        // Procesar datos del JSON o usar datos de ejemplo
         egresadosData = data.all_data || generateSampleData();
-        
         filteredData = [...egresadosData];
+        
+        // Aplicar filtros almacenados si existen
+        applyStoredFilters();
+        
         updateStatistics();
         renderTable(filteredData);
         updateMapWithData();
@@ -91,10 +93,49 @@ async function loadAndProcessData() {
         console.error('Error cargando datos:', error);
         egresadosData = generateSampleData();
         filteredData = [...egresadosData];
+        applyStoredFilters();
         updateStatistics();
         renderTable(filteredData);
         updateMapWithData();
     }
+}
+
+// Implementar paginación básica
+let currentPage = 1;
+let rowsPerPage = 20;
+
+function setupEventListeners() {
+      // Botón existente en la parte inferior
+      document.getElementById('back-btn').addEventListener('click', goToDashboard);
+    
+      // Nuevo botón en el header
+      document.getElementById('back-btn-header').addEventListener('click', goToDashboard);
+    
+    // Paginación
+    document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable(filteredData);
+        }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable(filteredData);
+        }
+    });
+    
+    document.getElementById('rows-per-page').addEventListener('change', (e) => {
+        rowsPerPage = parseInt(e.target.value);
+        currentPage = 1;
+        renderTable(filteredData);
+    });
+}
+
+function goToDashboard() {
+    window.location.href = 'dashboard.html';
 }
 
 function generateSampleData() {
@@ -443,10 +484,16 @@ function renderTable(data) {
                     No se encontraron egresados con los filtros aplicados
                 </td>
             </tr>`;
+        updatePaginationControls();
         return;
     }
     
-    const rows = data.map(egresado => `
+    // Calcular índices para paginación
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, data.length);
+    const paginatedData = data.slice(startIndex, endIndex);
+    
+    const rows = paginatedData.map(egresado => `
         <tr>
             <td>${egresado.id || '-'}</td>
             <td>${egresado.CURP || '-'}</td>
@@ -461,6 +508,14 @@ function renderTable(data) {
     ).join('');
     
     tableBody.innerHTML = rows;
+    updatePaginationControls();
+}
+
+function updatePaginationControls() {
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    document.getElementById('page-info').textContent = `Página ${currentPage} de ${totalPages}`;
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalPages === 0;
 }
 
 function updateMapWithData() {
@@ -643,7 +698,10 @@ function exportToExcel() {
     }
     
     if (typeof XLSX === 'undefined') {
-        loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', exportToExcel);
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = exportToExcel;
+        document.head.appendChild(script);
         return;
     }
     
@@ -663,16 +721,22 @@ function exportToExcel() {
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Egresados");
-        XLSX.writeFile(wb, `egresados_${new Date().toISOString().slice(0,10)}.xlsx`);
+        
+        // Nombre de archivo con fecha
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}${(today.getMonth()+1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
+        XLSX.writeFile(wb, `Egresados_UPAEP_${dateStr}.xlsx`);
     } catch (error) {
         console.error('Error al exportar a Excel:', error);
-        alert('Error al exportar a Excel');
+        alert('Ocurrió un error al generar el archivo Excel');
     }
 }
 
 // FUNCIONES UTILITARIAS
 function updateStatistics() {
-    const [totalElement, filteredElement] = document.querySelectorAll('.stat-number');
+    const totalElement = document.querySelectorAll('.stat-number')[0];
+    const filteredElement = document.querySelectorAll('.stat-number')[1];
+    
     if (totalElement) totalElement.textContent = egresadosData.length;
     if (filteredElement) filteredElement.textContent = filteredData.length;
 }
