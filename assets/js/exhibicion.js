@@ -102,7 +102,7 @@ async function loadAndProcessData() {
 
 // Implementar paginación básica
 let currentPage = 1;
-let rowsPerPage = 20;
+let rowsPerPage = 50;
 
 function setupEventListeners() {
       // Botón existente en la parte inferior
@@ -673,7 +673,7 @@ function generateCSV() {
     const headers = [
         'ID', 'CURP', 'Nombre', 'Programa Académico UPAEP', 
         'Periodo de Egreso', 'Empresa', 'Giro o Sector', 
-        'Ubicación de la Empresa', 'Estatus Laboral'
+        'Ubicación', 'Estatus Laboral'
     ];
     
     const rows = filteredData.map(e => [
