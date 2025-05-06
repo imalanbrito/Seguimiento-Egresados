@@ -737,7 +737,7 @@ function updateStatistics() {
     const totalElement = document.querySelectorAll('.stat-number')[0];
     const filteredElement = document.querySelectorAll('.stat-number')[1];
     
-    if (totalElement) totalElement.textContent = totalData.lenght;
+    if (totalElement) totalElement.textContent = totalData.length;
     if (filteredElement) filteredElement.textContent = filteredData.length;
 }
 
